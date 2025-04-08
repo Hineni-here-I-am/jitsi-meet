@@ -35,12 +35,12 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
         const { _styles: styles } = this.props;
 
         return (
-            <View style = { styles.container }>
-                { this._renderNoIntegrationsContent() }
-                { this._renderFileSharingContent() }
-                { this._renderUploadToTheCloudInfo() }
-                { this._renderIntegrationsContent() }
-                { this._renderAdvancedOptions() }
+            <View style={styles.container}>
+                {this._renderNoIntegrationsContent()}
+                {this._renderFileSharingContent()}
+                {this._renderUploadToTheCloudInfo()}
+                {this._renderIntegrationsContent()}
+                {this._renderAdvancedOptions()}
             </View>
         );
     }
@@ -69,52 +69,52 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
         return (
             <>
                 <View
-                    style = { styles.header }>
+                    style={styles.header}>
                     <Text
-                        style = {{
+                        style={{
                             ..._dialogStyles.text,
                             ...styles.title
                         }}>
-                        { t('recording.showAdvancedOptions') }
+                        {t('recording.showAdvancedOptions')}
                     </Text>
                     <Icon
-                        ariaPressed = { showAdvancedOptions }
-                        onClick = { this._onToggleShowOptions }
-                        role = 'button'
-                        size = { 24 }
-                        src = { showAdvancedOptions ? IconArrowDown : IconArrowRight } />
+                        ariaPressed={showAdvancedOptions}
+                        onClick={this._onToggleShowOptions}
+                        role='button'
+                        size={24}
+                        src={showAdvancedOptions ? IconArrowDown : IconArrowRight} />
                 </View>
                 {showAdvancedOptions && (
                     <>
                         <View
-                            key = 'transcriptionSetting'
-                            style = { styles.header }>
+                            key='transcriptionSetting'
+                            style={styles.header}>
                             <Text
-                                style = {{
+                                style={{
                                     ..._dialogStyles.text,
                                     ...styles.title
                                 }}>
-                                { t('recording.recordTranscription') }
+                                {t('recording.recordTranscription')}
                             </Text>
                             <Switch
-                                checked = { shouldRecordTranscription }
-                                onChange = { this._onTranscriptionSwitchChange }
-                                style = { styles.switch } />
+                                checked={shouldRecordTranscription}
+                                onChange={this._onTranscriptionSwitchChange}
+                                style={styles.switch} />
                         </View>
                         <View
-                            key = 'audioVideoSetting'
-                            style = { styles.header }>
+                            key='audioVideoSetting'
+                            style={styles.header}>
                             <Text
-                                style = {{
+                                style={{
                                     ..._dialogStyles.text,
                                     ...styles.title
                                 }}>
-                                { t('recording.recordAudioAndVideo') }
+                                {t('recording.recordAudioAndVideo')}
                             </Text>
                             <Switch
-                                checked = { shouldRecordAudioAndVideo }
-                                onChange = { this._onRecordAudioAndVideoSwitchChange }
-                                style = { styles.switch } />
+                                checked={shouldRecordAudioAndVideo}
+                                onChange={this._onRecordAudioAndVideoSwitchChange}
+                                style={styles.switch} />
                         </View>
                     </>
                 )}
@@ -146,27 +146,27 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
             = integrationsEnabled
                 ? (
                     <Switch
-                        checked = { selectedRecordingService === RECORDING_TYPES.JITSI_REC_SERVICE }
-                        disabled = { isValidating || !shouldRecordAudioAndVideo }
-                        onChange = { this._onRecordingServiceSwitchChange }
-                        style = { styles.switch } />
+                        checked={selectedRecordingService === RECORDING_TYPES.JITSI_REC_SERVICE}
+                        disabled={isValidating || !shouldRecordAudioAndVideo}
+                        onChange={this._onRecordingServiceSwitchChange}
+                        style={styles.switch} />
                 ) : null;
 
         return (
             <View
-                key = 'noIntegrationSetting'
-                style = { styles.header }>
+                key='noIntegrationSetting'
+                style={styles.header}>
                 <Image
-                    source = { ICON_CLOUD }
-                    style = { styles.recordingIcon } />
+                    source={ICON_CLOUD}
+                    style={styles.recordingIcon} />
                 <Text
-                    style = {{
+                    style={{
                         ..._dialogStyles.text,
                         ...styles.title
                     }}>
-                    { t('recording.serviceDescription') }
+                    {t('recording.serviceDescription')}
                 </Text>
-                { switchContent }
+                {switchContent}
             </View>
         );
     }
@@ -193,23 +193,23 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
 
         return (
             <View
-                key = 'fileSharingSetting'
-                style = { styles.header }>
+                key='fileSharingSetting'
+                style={styles.header}>
                 <Image
-                    source = { ICON_USERS }
-                    style = { styles.recordingIcon } />
+                    source={ICON_USERS}
+                    style={styles.recordingIcon} />
                 <Text
-                    style = {{
+                    style={{
                         ..._dialogStyles.text,
                         ...styles.title
                     }}>
-                    { t('recording.fileSharingdescription') }
+                    {t('recording.fileSharingdescription')}
                 </Text>
                 <Switch
-                    checked = { sharingSetting }
-                    disabled = { isValidating || !shouldRecordAudioAndVideo }
-                    onChange = { onSharingSettingChanged }
-                    style = { styles.switch } />
+                    checked={sharingSetting}
+                    disabled={isValidating || !shouldRecordAudioAndVideo}
+                    onChange={onSharingSettingChanged}
+                    style={styles.switch} />
             </View>
         );
     }
@@ -235,17 +235,17 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
 
         return (
             <View
-                key = 'cloudUploadInfo'
-                style = { styles.headerInfo }>
+                key='cloudUploadInfo'
+                style={styles.headerInfo}>
                 <Image
-                    source = { ICON_INFO }
-                    style = { styles.recordingInfoIcon } />
+                    source={ICON_INFO}
+                    style={styles.recordingInfoIcon} />
                 <Text
-                    style = {{
+                    style={{
                         ..._dialogStyles.text,
                         ...styles.titleInfo
                     }}>
-                    { t('recording.serviceDescriptionCloudInfo') }
+                    {t('recording.serviceDescriptionCloudInfo')}
                 </Text>
             </View>
         );
@@ -259,7 +259,7 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
     _renderSpinner() {
         return (
             <LoadingIndicator
-                size = 'small' />
+                size='small' />
         );
     }
 
@@ -274,19 +274,19 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
 
         return (
             <View
-                style = { styles.loggedIn }>
+                style={styles.loggedIn}>
                 <Text
-                    style = { [
+                    style={[
                         styles.text,
                         styles.recordingText
-                    ] }>
-                    { t('recording.loggedIn', { userName }) }
+                    ]}>
+                    {t('recording.loggedIn', { userName })}
                 </Text>
                 <Text
-                    style = { [
+                    style={[
                         styles.text,
                         styles.recordingText
-                    ] }>
+                    ]}>
                     {
                         t('recording.availableSpace', {
                             spaceLeft,
@@ -330,50 +330,50 @@ class StartRecordingDialogContent extends AbstractStartRecordingDialogContent {
             content = this._renderSignOut();
             switchContent = (
                 <Button
-                    accessibilityLabel = 'recording.signOut'
-                    labelKey = 'recording.signOut'
-                    onClick = { this._onSignOut }
-                    type = { BUTTON_TYPES.SECONDARY } />
+                    accessibilityLabel='recording.signOut'
+                    labelKey='recording.signOut'
+                    onClick={this._onSignOut}
+                    type={BUTTON_TYPES.SECONDARY} />
             );
 
         } else {
             switchContent = (
                 <Button
-                    accessibilityLabel = 'recording.signIn'
-                    labelKey = 'recording.signIn'
-                    onClick = { this._onSignIn }
-                    type = { BUTTON_TYPES.PRIMARY } />
+                    accessibilityLabel='recording.signIn'
+                    labelKey='recording.signIn'
+                    onClick={this._onSignIn}
+                    type={BUTTON_TYPES.PRIMARY} />
             );
         }
 
         if (fileRecordingsServiceEnabled) {
             switchContent = (
                 <Switch
-                    checked = { selectedRecordingService === RECORDING_TYPES.DROPBOX }
-                    disabled = { isValidating || !shouldRecordAudioAndVideo }
-                    onChange = { this._onDropboxSwitchChange }
-                    style = { styles.switch } />
+                    checked={selectedRecordingService === RECORDING_TYPES.DROPBOX}
+                    disabled={isValidating || !shouldRecordAudioAndVideo}
+                    onChange={this._onDropboxSwitchChange}
+                    style={styles.switch} />
             );
         }
 
         return (
             <View>
                 <View
-                    style = { styles.headerIntegrations }>
+                    style={styles.headerIntegrations}>
                     <Image
-                        source = { DROPBOX_LOGO }
-                        style = { styles.recordingIcon } />
+                        source={DROPBOX_LOGO}
+                        style={styles.recordingIcon} />
                     <Text
-                        style = {{
+                        style={{
                             ..._dialogStyles.text,
                             ...styles.title
                         }}>
-                        { t('recording.authDropboxText') }
+                        {t('recording.authDropboxText')}
                     </Text>
-                    { switchContent }
+                    {switchContent}
                 </View>
                 <View>
-                    { content }
+                    {content}
                 </View>
             </View>
         );

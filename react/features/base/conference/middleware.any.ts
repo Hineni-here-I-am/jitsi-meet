@@ -20,7 +20,7 @@ import { showErrorNotification, showNotification } from '../../notifications/act
 import { NOTIFICATION_TIMEOUT_TYPE } from '../../notifications/constants';
 import { INotificationProps } from '../../notifications/types';
 import { hasDisplayName } from '../../prejoin/utils';
-import { stopLocalVideoRecording } from '../../recording/actions.any';
+import { startLocalVideoRecording, stopLocalVideoRecording } from '../../recording/actions.any';
 import LocalRecordingManager from '../../recording/components/Recording/LocalRecordingManager';
 import { iAmVisitor } from '../../visitors/functions';
 import { overwriteConfig } from '../config/actions';
@@ -84,46 +84,46 @@ let beforeUnloadHandler: ((e?: any) => void) | undefined;
  */
 MiddlewareRegistry.register(store => next => action => {
     switch (action.type) {
-    case CONFERENCE_FAILED:
-        return _conferenceFailed(store, next, action);
+        case CONFERENCE_FAILED:
+            return _conferenceFailed(store, next, action);
 
-    case CONFERENCE_JOINED:
-        return _conferenceJoined(store, next, action);
+        case CONFERENCE_JOINED:
+            return _conferenceJoined(store, next, action);
 
-    case CONNECTION_ESTABLISHED:
-        return _connectionEstablished(store, next, action);
+        case CONNECTION_ESTABLISHED:
+            return _connectionEstablished(store, next, action);
 
-    case CONNECTION_FAILED:
-        return _connectionFailed(store, next, action);
+        case CONNECTION_FAILED:
+            return _connectionFailed(store, next, action);
 
-    case CONFERENCE_SUBJECT_CHANGED:
-        return _conferenceSubjectChanged(store, next, action);
+        case CONFERENCE_SUBJECT_CHANGED:
+            return _conferenceSubjectChanged(store, next, action);
 
-    case CONFERENCE_WILL_LEAVE:
-        _conferenceWillLeave(store);
-        break;
+        case CONFERENCE_WILL_LEAVE:
+            _conferenceWillLeave(store);
+            break;
 
-    case P2P_STATUS_CHANGED:
-        return _p2pStatusChanged(next, action);
+        case P2P_STATUS_CHANGED:
+            return _p2pStatusChanged(next, action);
 
-    case PARTICIPANT_UPDATED:
-        return _updateLocalParticipantInConference(store, next, action);
+        case PARTICIPANT_UPDATED:
+            return _updateLocalParticipantInConference(store, next, action);
 
-    case PIN_PARTICIPANT:
-        return _pinParticipant(store, next, action);
+        case PIN_PARTICIPANT:
+            return _pinParticipant(store, next, action);
 
-    case SEND_TONES:
-        return _sendTones(store, next, action);
+        case SEND_TONES:
+            return _sendTones(store, next, action);
 
-    case SET_ROOM:
-        return _setRoom(store, next, action);
+        case SET_ROOM:
+            return _setRoom(store, next, action);
 
-    case TRACK_ADDED:
-    case TRACK_REMOVED:
-        return _trackAddedOrRemoved(store, next, action);
+        case TRACK_ADDED:
+        case TRACK_REMOVED:
+            return _trackAddedOrRemoved(store, next, action);
 
-    case SET_ASSUMED_BANDWIDTH_BPS:
-        return _setAssumedBandwidthBps(store, next, action);
+        case SET_ASSUMED_BANDWIDTH_BPS:
+            return _setAssumedBandwidthBps(store, next, action);
     }
 
     return next(action);
@@ -172,87 +172,87 @@ function _conferenceFailed({ dispatch, getState }: IStore, next: Function, actio
 
     // Handle specific failure reasons.
     switch (error.name) {
-    case JitsiConferenceErrors.CONFERENCE_RESTARTED: {
-        if (enableForcedReload) {
+        case JitsiConferenceErrors.CONFERENCE_RESTARTED: {
+            if (enableForcedReload) {
+                dispatch(showErrorNotification({
+                    description: 'Restart initiated because of a bridge failure',
+                    titleKey: 'dialog.sessionRestarted'
+                }));
+            }
+
+            break;
+        }
+        case JitsiConferenceErrors.CONNECTION_ERROR: {
+            const [msg] = error.params;
+
+            dispatch(connectionDisconnected(getState()['features/base/connection'].connection));
             dispatch(showErrorNotification({
-                description: 'Restart initiated because of a bridge failure',
-                titleKey: 'dialog.sessionRestarted'
+                descriptionArguments: { msg },
+                descriptionKey: msg ? 'dialog.connectErrorWithMsg' : 'dialog.connectError',
+                titleKey: 'connection.CONNFAIL'
             }));
+
+            break;
         }
+        case JitsiConferenceErrors.CONFERENCE_MAX_USERS: {
+            dispatch(showErrorNotification({
+                hideErrorSupportLink: true,
+                descriptionKey: 'dialog.maxUsersLimitReached',
+                titleKey: 'dialog.maxUsersLimitReachedTitle'
+            }));
 
-        break;
-    }
-    case JitsiConferenceErrors.CONNECTION_ERROR: {
-        const [ msg ] = error.params;
+            // In case of max users(it can be from a visitor node), let's restore
+            // oldConfig if any as we will be back to the main prosody.
+            const newConfig = restoreConferenceOptions(getState);
 
-        dispatch(connectionDisconnected(getState()['features/base/connection'].connection));
-        dispatch(showErrorNotification({
-            descriptionArguments: { msg },
-            descriptionKey: msg ? 'dialog.connectErrorWithMsg' : 'dialog.connectError',
-            titleKey: 'connection.CONNFAIL'
-        }));
+            if (newConfig) {
+                dispatch(overwriteConfig(newConfig));
+                dispatch(conferenceWillLeave(conference));
 
-        break;
-    }
-    case JitsiConferenceErrors.CONFERENCE_MAX_USERS: {
-        dispatch(showErrorNotification({
-            hideErrorSupportLink: true,
-            descriptionKey: 'dialog.maxUsersLimitReached',
-            titleKey: 'dialog.maxUsersLimitReachedTitle'
-        }));
+                conference.leave()
+                    .then(() => dispatch(disconnect()));
+            }
 
-        // In case of max users(it can be from a visitor node), let's restore
-        // oldConfig if any as we will be back to the main prosody.
-        const newConfig = restoreConferenceOptions(getState);
-
-        if (newConfig) {
-            dispatch(overwriteConfig(newConfig));
-            dispatch(conferenceWillLeave(conference));
-
-            conference.leave()
-                .then(() => dispatch(disconnect()));
+            break;
         }
+        case JitsiConferenceErrors.NOT_ALLOWED_ERROR: {
+            const [type, msg] = error.params;
 
-        break;
-    }
-    case JitsiConferenceErrors.NOT_ALLOWED_ERROR: {
-        const [ type, msg ] = error.params;
+            let descriptionKey;
+            let titleKey = 'dialog.tokenAuthFailed';
 
-        let descriptionKey;
-        let titleKey = 'dialog.tokenAuthFailed';
+            if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.NO_MAIN_PARTICIPANTS) {
+                descriptionKey = 'visitors.notification.noMainParticipantsDescription';
+                titleKey = 'visitors.notification.noMainParticipantsTitle';
+            } else if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.NO_VISITORS_LOBBY) {
+                descriptionKey = 'visitors.notification.noVisitorLobby';
+            } else if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.PROMOTION_NOT_ALLOWED) {
+                descriptionKey = 'visitors.notification.notAllowedPromotion';
+            } else if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.ROOM_CREATION_RESTRICTION) {
+                descriptionKey = 'dialog.errorRoomCreationRestriction';
+            }
 
-        if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.NO_MAIN_PARTICIPANTS) {
-            descriptionKey = 'visitors.notification.noMainParticipantsDescription';
-            titleKey = 'visitors.notification.noMainParticipantsTitle';
-        } else if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.NO_VISITORS_LOBBY) {
-            descriptionKey = 'visitors.notification.noVisitorLobby';
-        } else if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.PROMOTION_NOT_ALLOWED) {
-            descriptionKey = 'visitors.notification.notAllowedPromotion';
-        } else if (type === JitsiConferenceErrors.AUTH_ERROR_TYPES.ROOM_CREATION_RESTRICTION) {
-            descriptionKey = 'dialog.errorRoomCreationRestriction';
+            dispatch(showErrorNotification({
+                descriptionKey,
+                hideErrorSupportLink: true,
+                titleKey
+            }));
+
+            sendAnalytics(createNotAllowedErrorEvent(type, msg));
+
+            break;
         }
-
-        dispatch(showErrorNotification({
-            descriptionKey,
-            hideErrorSupportLink: true,
-            titleKey
-        }));
-
-        sendAnalytics(createNotAllowedErrorEvent(type, msg));
-
-        break;
-    }
-    case JitsiConferenceErrors.OFFER_ANSWER_FAILED:
-        sendAnalytics(createOfferAnswerFailedEvent());
-        break;
+        case JitsiConferenceErrors.OFFER_ANSWER_FAILED:
+            sendAnalytics(createOfferAnswerFailedEvent());
+            break;
     }
 
     !error.recoverable
-    && conference?.leave(CONFERENCE_LEAVE_REASONS.UNRECOVERABLE_ERROR).catch((reason: Error) => {
-        // Even though we don't care too much about the failure, it may be
-        // good to know that it happen, so log it (on the info level).
-        logger.info('JitsiConference.leave() rejected with:', reason);
-    });
+        && conference?.leave(CONFERENCE_LEAVE_REASONS.UNRECOVERABLE_ERROR).catch((reason: Error) => {
+            // Even though we don't care too much about the failure, it may be
+            // good to know that it happen, so log it (on the info level).
+            logger.info('JitsiConference.leave() rejected with:', reason);
+        });
 
     // FIXME: Workaround for the web version. Currently, the creation of the
     // conference is handled by /conference.js and appropriate failure handlers
@@ -288,12 +288,35 @@ function _conferenceJoined({ dispatch, getState }: IStore, next: Function, actio
     const { pendingSubjectChange } = getState()['features/base/conference'];
     const {
         disableBeforeUnloadHandlers = false,
-        requireDisplayName
+        requireDisplayName,
+        recordings = {
+            autoRecord: true
+        }
     } = getState()['features/base/config'];
 
     dispatch(removeLobbyChatParticipant(true));
-
     pendingSubjectChange && dispatch(setSubject(pendingSubjectChange));
+
+    // If auto-recording is enabled and we're not a visitor
+    if (recordings?.autoRecord && !iAmVisitor(getState())) {
+        console.log('### Auto Recording - Starting Local Recording ###');
+
+        try {
+            // For local recording, we dispatch the local recording action
+            dispatch(startLocalVideoRecording(false)); // false = don't record only self
+
+            console.log('Local recording started successfully');
+        } catch (error) {
+            console.error('Failed to start local recording:', error);
+            dispatch(showErrorNotification({
+                titleKey: 'recording.failedToStart',
+                descriptionKey: 'recording.error',
+                descriptionArguments: {
+                    error: error.message || 'Unknown error'
+                }
+            }));
+        }
+    }
 
     // FIXME: Very dirty solution. This will work on web only.
     // When the user closes the window or quits the browser, lib-jitsi-meet
@@ -405,7 +428,7 @@ function _connectionFailed({ dispatch, getState }: IStore, next: Function, actio
     if (jwt) {
         const errors: string = validateJwt(jwt).map((err: any) =>
             i18n.t(`dialog.tokenAuthFailedReason.${err.key}`, err.args))
-        .join(' ');
+            .join(' ');
 
         _logJwtErrors(error.message, errors);
 
@@ -423,8 +446,8 @@ function _connectionFailed({ dispatch, getState }: IStore, next: Function, actio
     if (error.name === JitsiConnectionErrors.CONFERENCE_REQUEST_FAILED) {
         let notificationAction: Function = showNotification;
         const notificationProps = {
-            customActionNameKey: [ 'dialog.rejoinNow' ],
-            customActionHandler: [ () => dispatch(reloadNow()) ],
+            customActionNameKey: ['dialog.rejoinNow'],
+            customActionHandler: [() => dispatch(reloadNow())],
             descriptionKey: 'notify.connectionFailed'
         } as INotificationProps;
 
@@ -550,7 +573,7 @@ function _pinParticipant({ getState }: IStore, next: Function, action: AnyAction
     const actionName = id ? ACTION_PINNED : ACTION_UNPINNED;
     const local
         = participantById?.local
-            || (!id && pinnedParticipant?.local);
+        || (!id && pinnedParticipant?.local);
     let participantIdForEvent;
 
     if (local) {
@@ -670,10 +693,10 @@ function _trackAddedOrRemoved(store: IStore, next: Function, action: AnyAction) 
                 // If gUM is slow and tracks are created after the user has already joined the conference, avoid
                 // adding the tracks to the conference if the user is a visitor.
                 if (!iAmVisitor(state)) {
-                    promise = _addLocalTracksToConference(conference, [ jitsiTrack ]);
+                    promise = _addLocalTracksToConference(conference, [jitsiTrack]);
                 }
             } else {
-                promise = _removeLocalTracksFromConference(conference, [ jitsiTrack ]);
+                promise = _removeLocalTracksFromConference(conference, [jitsiTrack]);
             }
 
             if (promise) {

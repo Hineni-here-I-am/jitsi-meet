@@ -35,6 +35,12 @@ class StartRecordingDialog extends AbstractStartRecordingDialog {
             shouldRecordTranscription
         } = this.state;
 
+        console.log('### Manual Recording - Checking if disabled ###');
+        console.log('isTokenValid:', isTokenValid);
+        console.log('selectedRecordingService:', selectedRecordingService);
+        console.log('shouldRecordAudioAndVideo:', shouldRecordAudioAndVideo);
+        console.log('shouldRecordTranscription:', shouldRecordTranscription);
+
         if (!shouldRecordAudioAndVideo && !shouldRecordTranscription) {
             return true;
         }
@@ -78,30 +84,30 @@ class StartRecordingDialog extends AbstractStartRecordingDialog {
 
         return (
             <Dialog
-                ok = {{
+                ok={{
                     translationKey: 'dialog.startRecording',
                     disabled: this.isStartRecordingDisabled()
                 }}
-                onSubmit = { this._onSubmit }
-                titleKey = 'dialog.startRecording'>
+                onSubmit={this._onSubmit}
+                titleKey='dialog.startRecording'>
                 <StartRecordingDialogContent
-                    fileRecordingsServiceEnabled = { _fileRecordingsServiceEnabled }
-                    fileRecordingsServiceSharingEnabled = { _fileRecordingsServiceSharingEnabled }
-                    integrationsEnabled = { this._areIntegrationsEnabled() }
-                    isTokenValid = { isTokenValid }
-                    isValidating = { isValidating }
-                    localRecordingOnlySelf = { localRecordingOnlySelf }
-                    onChange = { this._onSelectedRecordingServiceChanged }
-                    onLocalRecordingSelfChange = { this._onLocalRecordingSelfChange }
-                    onRecordAudioAndVideoChange = { this._onRecordAudioAndVideoChange }
-                    onSharingSettingChanged = { this._onSharingSettingChanged }
-                    onTranscriptionChange = { this._onTranscriptionChange }
-                    selectedRecordingService = { selectedRecordingService }
-                    sharingSetting = { sharingEnabled }
-                    shouldRecordAudioAndVideo = { shouldRecordAudioAndVideo }
-                    shouldRecordTranscription = { shouldRecordTranscription }
-                    spaceLeft = { spaceLeft }
-                    userName = { userName } />
+                    fileRecordingsServiceEnabled={_fileRecordingsServiceEnabled}
+                    fileRecordingsServiceSharingEnabled={_fileRecordingsServiceSharingEnabled}
+                    integrationsEnabled={this._areIntegrationsEnabled()}
+                    isTokenValid={isTokenValid}
+                    isValidating={isValidating}
+                    localRecordingOnlySelf={localRecordingOnlySelf}
+                    onChange={this._onSelectedRecordingServiceChanged}
+                    onLocalRecordingSelfChange={this._onLocalRecordingSelfChange}
+                    onRecordAudioAndVideoChange={this._onRecordAudioAndVideoChange}
+                    onSharingSettingChanged={this._onSharingSettingChanged}
+                    onTranscriptionChange={this._onTranscriptionChange}
+                    selectedRecordingService={selectedRecordingService}
+                    sharingSetting={sharingEnabled}
+                    shouldRecordAudioAndVideo={shouldRecordAudioAndVideo}
+                    shouldRecordTranscription={shouldRecordTranscription}
+                    spaceLeft={spaceLeft}
+                    userName={userName} />
             </Dialog>
         );
     }
@@ -117,6 +123,12 @@ class StartRecordingDialog extends AbstractStartRecordingDialog {
         if (_screenshotCaptureEnabled) {
             dispatch(toggleScreenshotCaptureSummary(true));
         }
+    }
+
+    _onSubmit() {
+        console.log('### Manual Recording - Submit clicked ###');
+        console.log('State:', this.state);
+        console.log('Props:', this.props);
     }
 }
 
