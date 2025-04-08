@@ -65,7 +65,7 @@ class StartRecordingDialog extends AbstractStartRecordingDialog {
      *
      * @inheritdoc
      */
-    render() {
+    override render() {
         const {
             isTokenValid,
             isValidating,
@@ -117,7 +117,7 @@ class StartRecordingDialog extends AbstractStartRecordingDialog {
      *
      * @returns {void}
      */
-    _toggleScreenshotCapture() {
+    override _toggleScreenshotCapture() {
         const { dispatch, _screenshotCaptureEnabled } = this.props;
 
         if (_screenshotCaptureEnabled) {

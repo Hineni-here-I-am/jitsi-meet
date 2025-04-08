@@ -165,9 +165,16 @@ async function joinTheModeratorAsP1(ctx: IContext, options?: IJoinOptions) {
     const p1DisplayName = P1_DISPLAY_NAME;
     let token;
 
-    // if it is jaas create the first one to be moderator and second not moderator
-    if (ctx.jwtPrivateKeyPath && !options?.skipFirstModerator) {
-        token = getModeratorToken(p1DisplayName);
+    if (!options?.skipFirstModerator) {
+        // we prioritize the access token when iframe is not used and private key is set,
+        // otherwise if private key is not specified we use the access token if set
+        if (process.env.JWT_ACCESS_TOKEN
+            && ((ctx.jwtPrivateKeyPath && !ctx.iframeAPI && !options?.preferGenerateToken)
+                || !ctx.jwtPrivateKeyPath)) {
+            token = process.env.JWT_ACCESS_TOKEN;
+        } else if (ctx.jwtPrivateKeyPath) {
+            token = getModeratorToken(p1DisplayName);
+        }
     }
 
     // make sure the first participant is moderator, if supported by deployment
@@ -266,6 +273,10 @@ export async function muteAudioAndCheck(testee: Participant, observer: Participa
 
     await observer.getFilmstrip().assertAudioMuteIconIsDisplayed(testee);
     await testee.getFilmstrip().assertAudioMuteIconIsDisplayed(testee);
+
+    await observer.getParticipantsPane().assertAudioMuteIconIsDisplayed(testee);
+    await testee.getParticipantsPane().assertAudioMuteIconIsDisplayed(testee);
+
 }
 
 /**
@@ -278,8 +289,12 @@ export async function unmuteAudioAndCheck(testee: Participant, observer: Partici
     await testee.getNotifications().closeAskToUnmuteNotification(true);
     await testee.getNotifications().closeAVModerationMutedNotification(true);
     await testee.getToolbar().clickAudioUnmuteButton();
+
     await testee.getFilmstrip().assertAudioMuteIconIsDisplayed(testee, true);
     await observer.getFilmstrip().assertAudioMuteIconIsDisplayed(testee, true);
+
+    await testee.getParticipantsPane().assertAudioMuteIconIsDisplayed(testee, true);
+    await observer.getParticipantsPane().assertAudioMuteIconIsDisplayed(testee, true);
 }
 
 /**
@@ -336,7 +351,12 @@ function getModeratorToken(displayName: string) {
                 'id': uuidv4(),
                 'avatar': 'https://avatars0.githubusercontent.com/u/3671647',
                 'email': 'john.doe@jitsi.org'
-            }
+            },
+            'features': {
+                'outbound-call': 'true',
+                'transcription': 'true',
+                'recording': 'true'
+            },
         },
         'room': '*'
     };
